@@ -27,7 +27,9 @@
   h3{margin:10px 0 10px;font-weight:500;font-size:clamp(1.1rem,3vw,1.5rem)}
   .scent{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
   .scent button{font:inherit;font-size:.85rem;padding:6px 10px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;cursor:pointer}
+  .scent button:disabled{opacity:.45;cursor:not-allowed;background:#f6f1ee;color:var(--muted)}
   .scent button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .only{font-size:.85rem;color:var(--muted);margin-bottom:10px}
   .specs{margin:0 0 12px;padding-left:20px;color:var(--ink);font-size:.95rem}
   .dots{display:flex;gap:10px;flex-wrap:wrap}
   .dot{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
@@ -36,6 +38,7 @@
   .btn{display:inline-block;text-align:center;text-decoration:none;background:var(--brand);color:#fff;border:0;padding:10px 16px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
   .btn:disabled{background:var(--line);color:var(--muted);cursor:default}
   .out .row-img{opacity:.5}
+  .out .dot,.out .scent button{pointer-events:none;opacity:.5}
   .tag{color:#b4472f;font-weight:600;font-size:.85rem;margin-bottom:6px}
   .cartbtn{position:fixed;top:14px;right:14px;z-index:5;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:10px 16px;font:inherit;font-weight:650;cursor:pointer}
   .shade{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:6}
@@ -93,7 +96,7 @@ const CONFIG = {
 /* =========================================== */
 
 /* Sheet columns: name, category, price, scented_price, weight, volume, burn_time, colors, image, in_stock
-   price = non-scented price. Leave scented_price empty if there is no scented option.
+   price = non-scented price, scented_price = scented price. Fill both for a choice; fill only one if the candle comes only that way.
    colors: either 8 yes/no columns named pink,white,cyan,yellow,green,orange,blue,purple (yes = offered),
    or one 'colors' column with names separated by ; or , . Nothing filled = all 8 colours. */
 const SAMPLE_CSV = `name,category,price,scented_price,weight,volume,burn_time,colors,image,in_stock
@@ -151,22 +154,22 @@ function render(){
   const list=products.map((p,i)=>[p,i]).filter(([p])=>!q||(p.name+" "+(p.category||"")).toLowerCase().includes(q));
   $("grid").innerHTML=list.length?list.map(([p,i])=>{
     const st=sel[i]||(sel[i]={s:0,c:0});
-    const price=num(p.price), sp=num(p.scented_price), hasS=sp>0;
-    if(!hasS) st.s=0;
+    const price=num(p.price), sp=num(p.scented_price), hasN=price>0, hasS=sp>0, both=hasN&&hasS;
+    if(!(st.s===0&&hasN||st.s===1&&hasS)) st.s=hasN?0:1;
     const cols=colorList(p); if(st.c>=cols.length) st.c=0;
-    const out=/^(no|n|false|0|out)/i.test(p.in_stock||"");
+    const out=/^(no|n|false|0|out)/i.test(p.in_stock||"")||!(hasN||hasS);
     const now=st.s?sp:price;
     const specs=[["Weight",p.weight],["Jar volume",p.volume],["Burn time",p.burn_time]].filter(x=>x[1]).map(x=>`<li>${x[0]} - ${esc(x[1])}</li>`).join("");
     return `<article class="row${out?" out":""}">
       <img class="row-img" src="${esc(p.image||"https://picsum.photos/seed/"+encodeURIComponent(p.name)+"/600/600")}" data-orig="${esc(p.image||"")}" data-name="${esc(p.name)}" data-n="0" onerror="imgErr(this)" alt="${esc(p.name)}" loading="lazy">
       <div class="info">
-        <div class="price">${cur}${price}${hasS?` <i>|</i> ${sp}`:""}</div>
+        <div class="price">${cur}${both?`${price} <i>|</i> ${sp}`:(hasN?price:sp)}</div>
         <h3>${esc(p.name)}</h3>
-        ${hasS?`<div class="scent"><button data-s="${i}:0" class="${st.s?"":"on"}">Non-scented ${cur}${price}</button><button data-s="${i}:1" class="${st.s?"on":""}">Scented ${cur}${sp}</button></div>`:""}
+        ${hasN||hasS?`<div class="scent"><button data-s="${i}:0" class="${st.s?"":"on"}" ${hasN?"":"disabled"}>Non-scented ${hasN?cur+price:"(not available)"}</button><button data-s="${i}:1" class="${st.s?"on":""}" ${hasS?"":"disabled"}>Scented ${hasS?cur+sp:"(not available)"}</button></div>`:""}
         ${specs?`<ul class="specs">${specs}</ul>`:""}
         <div class="dots">${cols.map((c,ci)=>`<button class="dot${ci==st.c?" on":""}" style="background:${esc(hex(c))}" data-c="${i}:${ci}" aria-label="Colour ${esc(c)}" title="${esc(cap(c))}"></button>`).join("")}</div>
         <div class="cname">Colour: ${esc(cap(cols[st.c]))}</div>
-        ${out?'<div class="tag">Out of stock</div>':""}
+        ${out?`<div class="tag">${hasN||hasS?"Out of stock":"Price not available"}</div>`:""}
         <button class="btn" data-add="${i}" ${out?"disabled":""}>${out?"Unavailable":`Add to cart - ${cur}${now}`}</button>
       </div></article>`}).join(""):'<p class="msg">No products match your search.</p>';
 }
