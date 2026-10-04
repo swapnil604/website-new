@@ -86,7 +86,7 @@ const CONFIG = {
   handle: "@lalalamp.in",
   features: ["Product: (Non-scented/Scented)","100% premium Soy wax","Eco-friendly","Smokeless","Colour - Customised","Scent - Options"],
   // Paste your published Google Sheet CSV link here. Leave empty to show the sample products.
-  sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUVG_25I9GanKlQ6rPQWw5JIUu9kyCdG0iyMTNpJUMg02nZYbFDwMV_6WFud-n5h19JPA7-_60zB_v/pub?gid=943284423&single=true&output=csv",
+  sheetCsvUrl: "",
   whatsappNumber: "917887723281",   // orders go here (country code + number, no + or spaces)
   currency: "₹"
 };
@@ -112,13 +112,13 @@ const cur=CONFIG.currency;
 let products=[], sel={}, cart={};
 // If a photo isn't found, also try images/<file> and the site root, then show a random placeholder photo
 function imgErr(img){
-  const o=img.dataset.orig||"";
-  if(!o||/^(https?:)?\/\//.test(o)||o.startsWith("data:")){img.onerror=null;return}
-  const f=o.split("/").pop(), opts=[o,"images/"+f,f,"Images/"+f], n=+img.dataset.n+1;
-  if(n<opts.length){img.dataset.n=n;img.src=opts[n]}
-  else if(!img.dataset.rnd){img.dataset.rnd=1;img.src="https://picsum.photos/seed/"+encodeURIComponent(f||"lamp")+"/600/600"} // random placeholder photo
-  else{img.onerror=null;const t=x=>x.replace(/[<>&"]/g,"");
-    img.src="data:image/svg+xml,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#f3ece8"/><text x="200" y="130" font-family="Arial" font-size="18" text-anchor="middle" fill="#7a1236">Photo not found</text><text x="200" y="165" font-family="Arial" font-size="14" text-anchor="middle" fill="#4a2c25">${t(o)}</text><text x="200" y="195" font-family="Arial" font-size="12" text-anchor="middle" fill="#7d6a64">Check the image column and the file on GitHub</text></svg>`)}
+  const o=img.dataset.orig||"", ext=/^(https?:)?\/\//.test(o)||o.startsWith("data:");
+  const f=o.split("/").pop()||img.dataset.name||"lamp";
+  const opts=ext||!o?[o]:[o,"images/"+f,f,"Images/"+f], n=+img.dataset.n+1;
+  if(o&&n<opts.length){img.dataset.n=n;img.src=opts[n]}
+  else if(!img.dataset.rnd){img.dataset.rnd=1;img.src="https://picsum.photos/seed/"+encodeURIComponent(f)+"/600/600"} // random placeholder photo
+  else{img.onerror=null;const t=x=>String(x).replace(/[<>&"]/g,"");
+    img.src="data:image/svg+xml,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#f3ece8"/><text x="200" y="130" font-family="Arial" font-size="18" text-anchor="middle" fill="#7a1236">Photo not found</text><text x="200" y="165" font-family="Arial" font-size="14" text-anchor="middle" fill="#4a2c25">${t(o||"(image cell is empty)")}</text></svg>`)}
 }
 
 document.title=CONFIG.brandName;
@@ -158,7 +158,7 @@ function render(){
     const now=st.s?sp:price;
     const specs=[["Weight",p.weight],["Jar volume",p.volume],["Burn time",p.burn_time]].filter(x=>x[1]).map(x=>`<li>${x[0]} - ${esc(x[1])}</li>`).join("");
     return `<article class="row${out?" out":""}">
-      <img class="row-img" src="${esc(p.image||"")}" data-orig="${esc(p.image||"")}" data-n="0" onerror="imgErr(this)" alt="${esc(p.name)}" loading="lazy">
+      <img class="row-img" src="${esc(p.image||"https://picsum.photos/seed/"+encodeURIComponent(p.name)+"/600/600")}" data-orig="${esc(p.image||"")}" data-name="${esc(p.name)}" data-n="0" onerror="imgErr(this)" alt="${esc(p.name)}" loading="lazy">
       <div class="info">
         <div class="price">${cur}${price}${hasS?` <i>|</i> ${sp}`:""}</div>
         <h3>${esc(p.name)}</h3>
