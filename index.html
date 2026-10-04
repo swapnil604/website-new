@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La La Lamp</title>
+<style>
+  :root{--brand:#7a1236;--ink:#4a2c25;--muted:#7d6a64;--line:#eadfda;--bg:#fff;--rose:#e0cdc6;--accent:#7a1236}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;border-left:14px solid var(--rose)}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+  .top{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  .brand{font-family:Georgia,"Times New Roman",serif;color:var(--brand);font-size:clamp(2rem,6vw,3.2rem);margin:0;line-height:1.05}
+  .feat{font-size:.82rem;letter-spacing:.14em;margin:0;padding:0;list-style:none}
+  .feat li::before{content:"\2022\00a0\00a0"}
+  .feat .head{margin-bottom:2px}.feat .head::before{content:""}
+  .handle{position:fixed;right:10px;top:90px;writing-mode:vertical-rl;transform:rotate(180deg);font-size:1.3rem;color:var(--ink);letter-spacing:.05em}
+  .search{margin:26px 0 8px}
+  .search input{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+  .search input:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .row{display:grid;grid-template-columns:minmax(130px,40%) 1fr;gap:24px;padding:20px 0;align-items:stretch}
+  .row img{width:100%;height:auto;min-height:120px;max-height:560px;object-fit:contain;background:#fff;display:block;align-self:start}
+  .info{display:flex;flex-direction:column;align-items:flex-start}
+  .info .btn{margin-top:auto}
+  .price{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.4rem,4vw,2rem);line-height:1;margin-top:-2px}
+  .price i{font-style:normal;margin:0 .35em}
+  h3{margin:10px 0 10px;font-weight:500;font-size:clamp(1.1rem,3vw,1.5rem)}
+  .scent{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .scent button{font:inherit;font-size:.85rem;padding:6px 10px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;cursor:pointer}
+  .scent button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .specs{margin:0 0 12px;padding-left:20px;color:var(--ink);font-size:.95rem}
+  .dots{display:flex;gap:10px;flex-wrap:wrap}
+  .dot{width:24px;height:24px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+  .dot.on{box-shadow:0 0 0 2px var(--brand)}
+  .cname{font-size:.82rem;color:var(--muted);margin:6px 0 10px}
+  .btn{display:inline-block;text-align:center;text-decoration:none;background:var(--brand);color:#fff;border:0;padding:10px 16px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+  .btn:disabled{background:var(--line);color:var(--muted);cursor:default}
+  .out .row-img{opacity:.5}
+  .tag{color:#b4472f;font-weight:600;font-size:.85rem;margin-bottom:6px}
+  .cartbtn{position:fixed;top:14px;right:14px;z-index:5;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:10px 16px;font:inherit;font-weight:650;cursor:pointer}
+  .shade{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:6}
+  .shade.open{display:block}
+  aside{position:fixed;top:0;right:0;bottom:0;width:min(380px,100%);background:#fff;z-index:7;transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column;border-left:1px solid var(--line)}
+  aside.open{transform:none}
+  aside h2{margin:0;padding:16px;font-size:1.15rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+  aside h2 button{background:none;border:0;color:var(--ink);font-size:1.5rem;cursor:pointer}
+  #items{flex:1;overflow:auto;padding:8px 16px}
+  .line{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .line img{width:56px;height:56px;object-fit:cover;border-radius:6px}
+  .line small{color:var(--muted)}
+  .qty{display:flex;align-items:center;gap:6px;margin-top:4px}
+  .qty button{width:26px;height:26px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;cursor:pointer}
+  .rm{background:none;border:0;color:#b4472f;cursor:pointer;font:inherit;font-size:.85rem}
+  .foot{padding:16px;border-top:1px solid var(--line)}
+  .total{display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem;margin-bottom:8px}
+  .foot .btn{display:block}
+  .msg{text-align:center;color:var(--muted);padding:40px 0}
+  @media (max-width:700px){.handle{display:none}body{border-left-width:8px}.top{grid-template-columns:1fr}.row{gap:14px}.top{margin-top:30px}}
+</style>
+</head>
+<body>
+<button class="cartbtn" id="openCart" aria-label="Open cart">Cart (<span id="count">0</span>)</button>
+<div class="shade" id="shade"></div>
+<aside id="drawer" aria-label="Cart">
+  <h2>Your cart <button id="closeCart" aria-label="Close cart">×</button></h2>
+  <div id="items"></div>
+  <div class="foot">
+    <div class="total"><span>Total</span><span id="total"></span></div>
+    <a class="btn" id="checkout" target="_blank" rel="noopener">Send order on WhatsApp</a>
+  </div>
+</aside>
+<div class="handle" id="handle"></div>
+<div class="wrap">
+  <div class="top">
+    <h1 class="brand" id="brand"></h1>
+    <ul class="feat" id="feat"></ul>
+  </div>
+  <div class="search"><input id="q" type="search" placeholder="Search products" aria-label="Search products"></div>
+  <main id="grid"><p class="msg">Loading products…</p></main>
+</div>
+
+<script>
+/* ============ EDIT THIS SECTION ============ */
+const CONFIG = {
+  brandName: "La La Lamp",
+  handle: "@lalalamp.in",
+  features: ["Product: (Non-scented/Scented)","100% premium Soy wax","Eco-friendly","Smokeless","Colour - Customised","Scent - Options"],
+  // Paste your published Google Sheet CSV link here. Leave empty to show the sample products.
+  sheetCsvUrl: "",
+  whatsappNumber: "917887723281",   // orders go here (country code + number, no + or spaces)
+  currency: "₹"
+};
+/* =========================================== */
+
+/* Sheet columns: name, category, price, scented_price, weight, volume, burn_time, colors, image, in_stock
+   price = non-scented price. Leave scented_price empty if there is no scented option.
+   colors: either 8 yes/no columns named pink,white,cyan,yellow,green,orange,blue,purple (yes = offered),
+   or one 'colors' column with names separated by ; or , . Nothing filled = all 8 colours. */
+const SAMPLE_CSV = `name,category,price,scented_price,weight,volume,burn_time,colors,image,in_stock
+4A - Mini Jar,Mini Jar,139,169,100 gm+,55 ml,12 hrs,,images/mini-jar-4a.jpg,yes
+4B - Mini Jar,Mini Jar,139,169,100 gm+,55 ml,12 hrs,,images/mini-jar-4b.jpg,yes
+4C - Mini Jar,Mini Jar,139,169,90 gm+,55 ml,12 hrs,,images/mini-jar-4c.jpg,yes`;
+
+const COLORS={pink:"#e8a0a8",white:"#eceee6",cyan:"#5ce0e6",yellow:"#ffd84a",green:"#6fd656",orange:"#ff7a1f",blue:"#0a4bb5",purple:"#6a1be8"};
+const DEFAULT_COLORS=Object.keys(COLORS);
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=v=>parseFloat(String(v||"").replace(/[^0-9.]/g,""))||0;
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const cur=CONFIG.currency;
+let products=[], sel={}, cart={};
+// If a photo isn't found, also try images/<file> and the site root, then show a random placeholder photo
+function imgErr(img){
+  const o=img.dataset.orig||"";
+  if(!o||/^(https?:)?\/\//.test(o)||o.startsWith("data:")){img.onerror=null;return}
+  const f=o.split("/").pop(), opts=[o,"images/"+f,f,"Images/"+f], n=+img.dataset.n+1;
+  if(n<opts.length){img.dataset.n=n;img.src=opts[n]}
+  else if(!img.dataset.rnd){img.dataset.rnd=1;img.src="https://picsum.photos/seed/"+encodeURIComponent(f||"lamp")+"/600/600"} // random placeholder photo
+  else{img.onerror=null;const t=x=>x.replace(/[<>&"]/g,"");
+    img.src="data:image/svg+xml,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#f3ece8"/><text x="200" y="130" font-family="Arial" font-size="18" text-anchor="middle" fill="#7a1236">Photo not found</text><text x="200" y="165" font-family="Arial" font-size="14" text-anchor="middle" fill="#4a2c25">${t(o)}</text><text x="200" y="195" font-family="Arial" font-size="12" text-anchor="middle" fill="#7d6a64">Check the image column and the file on GitHub</text></svg>`)}
+}
+
+document.title=CONFIG.brandName;
+$("brand").textContent=CONFIG.brandName;
+$("handle").textContent=CONFIG.handle;
+$("feat").innerHTML=CONFIG.features.map((f,i)=>`<li${i?"":' class="head"'}>${esc(f)}</li>`).join("");
+
+function parseCSV(text){
+  const rows=[];let row=[],f="",q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c=='"'){ if(text[i+1]=='"'){f+='"';i++} else q=false } else f+=c }
+    else if(c=='"') q=true;
+    else if(c==","){row.push(f);f=""}
+    else if(c=="\n"||c=="\r"){ if(c=="\r"&&text[i+1]=="\n")i++; row.push(f);f="";rows.push(row);row=[] }
+    else f+=c;
+  }
+  if(f||row.length){row.push(f);rows.push(row)}
+  const head=rows.shift().map(h=>h.trim().toLowerCase());
+  return rows.filter(r=>r.some(x=>x.trim())).map(r=>Object.fromEntries(head.map((h,i)=>[h,(r[i]||"").trim()])));
+}
+const colorList=p=>{
+  // one column per colour (pink, white, ...): yes = offered. If none are filled, fall back to the "colors" text, then all 8.
+  if(DEFAULT_COLORS.some(c=>(p[c]||"").trim())){const on=DEFAULT_COLORS.filter(c=>/^(y|yes|true|1)/i.test((p[c]||"").trim()));return on.length?on:DEFAULT_COLORS}
+  const l=(p.colors||"").split(/[;,|]/).map(x=>x.trim().toLowerCase()).filter(Boolean);return l.length?l:DEFAULT_COLORS};
+const hex=n=>COLORS[n]||n;
+
+function render(){
+  const q=$("q").value.toLowerCase();
+  const list=products.map((p,i)=>[p,i]).filter(([p])=>!q||(p.name+" "+(p.category||"")).toLowerCase().includes(q));
+  $("grid").innerHTML=list.length?list.map(([p,i])=>{
+    const st=sel[i]||(sel[i]={s:0,c:0});
+    const price=num(p.price), sp=num(p.scented_price), hasS=sp>0;
+    if(!hasS) st.s=0;
+    const cols=colorList(p); if(st.c>=cols.length) st.c=0;
+    const out=/^(no|n|false|0|out)/i.test(p.in_stock||"");
+    const now=st.s?sp:price;
+    const specs=[["Weight",p.weight],["Jar volume",p.volume],["Burn time",p.burn_time]].filter(x=>x[1]).map(x=>`<li>${x[0]} - ${esc(x[1])}</li>`).join("");
+    return `<article class="row${out?" out":""}">
+      <img class="row-img" src="${esc(p.image||"")}" data-orig="${esc(p.image||"")}" data-n="0" onerror="imgErr(this)" alt="${esc(p.name)}" loading="lazy">
+      <div class="info">
+        <div class="price">${cur}${price}${hasS?` <i>|</i> ${sp}`:""}</div>
+        <h3>${esc(p.name)}</h3>
+        ${hasS?`<div class="scent"><button data-s="${i}:0" class="${st.s?"":"on"}">Non-scented ${cur}${price}</button><button data-s="${i}:1" class="${st.s?"on":""}">Scented ${cur}${sp}</button></div>`:""}
+        ${specs?`<ul class="specs">${specs}</ul>`:""}
+        <div class="dots">${cols.map((c,ci)=>`<button class="dot${ci==st.c?" on":""}" style="background:${esc(hex(c))}" data-c="${i}:${ci}" aria-label="Colour ${esc(c)}" title="${esc(cap(c))}"></button>`).join("")}</div>
+        <div class="cname">Colour: ${esc(cap(cols[st.c]))}</div>
+        ${out?'<div class="tag">Out of stock</div>':""}
+        <button class="btn" data-add="${i}" ${out?"disabled":""}>${out?"Unavailable":`Add to cart - ${cur}${now}`}</button>
+      </div></article>`}).join(""):'<p class="msg">No products match your search.</p>';
+}
+
+/* ---- cart ---- */
+try{const c=JSON.parse(localStorage.getItem("cart2")||"{}");if(c&&typeof c==="object")cart=c}catch(e){}
+function saveCart(){try{localStorage.setItem("cart2",JSON.stringify(cart))}catch(e){} drawCart()}
+function drawCart(){
+  const keys=Object.keys(cart);
+  let total=0,count=0,lines="";
+  keys.forEach(k=>{const it=cart[k];total+=it.price*it.qty;count+=it.qty;
+    lines+=`<div class="line"><img src="${esc(it.image||"")}" alt=""><div><strong>${esc(it.name)}</strong><br><small>${esc(it.scent)}, ${esc(it.color)} - ${cur}${it.price}</small>
+    <div class="qty"><button data-dec="${esc(k)}" aria-label="Decrease">−</button><span>${it.qty}</span><button data-inc="${esc(k)}" aria-label="Increase">+</button></div></div>
+    <button class="rm" data-rm="${esc(k)}">Remove</button></div>`});
+  $("items").innerHTML=lines||'<p class="msg">Your cart is empty.</p>';
+  $("count").textContent=count;
+  $("total").textContent=cur+total;
+  const text="Hi, I'd like to order:\n"+keys.map(k=>{const it=cart[k];return `${it.qty} x ${it.name} (${it.scent}, ${it.color}) - ${cur}${it.price*it.qty}`}).join("\n")+`\nTotal: ${cur}${total}`;
+  $("checkout").href=count?`https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`:"#";
+  $("checkout").style.opacity=count?1:.5;
+}
+const toggle=o=>{$("drawer").classList.toggle("open",o);$("shade").classList.toggle("open",o)};
+$("openCart").onclick=()=>toggle(true);
+$("closeCart").onclick=$("shade").onclick=()=>toggle(false);
+$("checkout").addEventListener("click",e=>{
+  if(!Object.keys(cart).length){e.preventDefault();return}
+  setTimeout(()=>{cart={};saveCart();toggle(false)},400); // reset cart after checkout
+});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+  if(d.s){const[i,v]=d.s.split(":");(sel[i]||(sel[i]={s:0,c:0})).s=+v;render()}
+  else if(d.c){const[i,v]=d.c.split(":");(sel[i]||(sel[i]={s:0,c:0})).c=+v;render()}
+  else if(d.add!==undefined){
+    const i=d.add,p=products[i],st=sel[i]||{s:0,c:0},cols=colorList(p);
+    const scent=st.s?"Scented":"Non-scented",color=cap(cols[st.c]),price=st.s?num(p.scented_price):num(p.price);
+    const k=[p.name,scent,color].join("|");
+    cart[k]=cart[k]||{name:p.name,scent,color,price,image:p.image||"",qty:0};cart[k].qty++;
+    saveCart();const old=t.textContent;t.textContent="Added ✓";setTimeout(render,900);
+  }
+  else if(d.inc){cart[d.inc].qty++;saveCart()}
+  else if(d.dec){if(--cart[d.dec].qty<=0)delete cart[d.dec];saveCart()}
+  else if(d.rm){delete cart[d.rm];saveCart()}
+});
+$("q").addEventListener("input",render);
+
+async function load(){
+  try{
+    let text=SAMPLE_CSV;
+    if(CONFIG.sheetCsvUrl){const r=await fetch(CONFIG.sheetCsvUrl);if(!r.ok)throw 0;text=await r.text()}
+    products=parseCSV(text);render();drawCart();
+  }catch(e){
+    $("grid").innerHTML='<p class="msg">Could not load products. Check that your Google Sheet is published as CSV and the link in CONFIG is correct.</p>';
+  }
+}
+load();
+</script>
+</body>
+</html>
