@@ -58,7 +58,27 @@
   .total{display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem;margin-bottom:8px}
   .foot .btn{display:block}
   .msg{text-align:center;color:var(--muted);padding:40px 0}
-  @media (max-width:700px){.handle{display:none}body{border-left-width:8px}.top{grid-template-columns:1fr}.row{gap:14px}.top{margin-top:30px}}
+  @media (max-width:700px){
+    .handle{display:none}
+    body{border-left-width:8px}
+    .wrap{padding:20px 14px 100px}
+    .top{grid-template-columns:1fr;gap:10px}
+    .feat{font-size:.75rem;letter-spacing:.08em}
+    .search input{font-size:16px}
+    .cartbtn{top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));right:16px;padding:13px 20px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+    .row{gap:14px}
+    .dots{gap:12px}.dot{width:32px;height:32px}
+    .scent button{padding:9px 12px}
+    .qty button{width:36px;height:36px}
+    aside{width:100%}
+    .foot{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  }
+  @media (max-width:520px){
+    .row{grid-template-columns:1fr}
+    .row img{max-height:420px;margin:0 auto;width:auto;max-width:100%}
+    .info .btn{width:100%}
+    .price{font-size:1.6rem}
+  }
 </style>
 </head>
 <body>
