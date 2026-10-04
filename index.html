@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title></title>
+<title>La La Lamp</title>
 <style>
   :root{--brand:#7a1236;--ink:#4a2c25;--muted:#7d6a64;--line:#eadfda;--bg:#fff;--rose:#e0cdc6;--accent:#7a1236}
   *{box-sizing:border-box}
@@ -11,8 +11,7 @@
   .wrap{max-width:900px;margin:0 auto;padding:28px 20px 60px}
   .top{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
   .lead{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
-  .logo{width:110px;height:auto;display:block;centre:-6px}
-  .brand{font-family:Georgia,"Times New Roman",serif;color:var(--brand);font-size:clamp(2rem,6vw,3.2rem);margin:0;line-height:1.05}
+  .logo{width:250px;max-width:100%;height:auto;display:block;margin-left:-6px}
   .feat{font-size:.82rem;letter-spacing:.14em;margin:0;padding:0;list-style:none}
   .feat li::before{content:"\2022\00a0\00a0"}
   .feat .head{margin-bottom:2px}.feat .head::before{content:""}
@@ -68,7 +67,7 @@
     .feat{font-size:.75rem;letter-spacing:.08em}
     .search input{font-size:16px}
     .cartbtn{top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));right:16px;padding:13px 20px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
-    .logo{width:84px}
+    .logo{width:200px}
     .row{gap:14px}
     .dots{gap:12px}.dot{width:32px;height:32px}
     .scent button{padding:9px 12px}
@@ -98,7 +97,7 @@
 <div class="handle" id="handle"></div>
 <div class="wrap">
   <div class="top">
-    <div class="lead"><img class="logo" id="logo" alt="La La Lamp logo" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='logo.png'}else{this.style.display='none'}"><h1 class="brand" id="brand"></h1></div>
+    <div class="lead"><img class="logo" id="logo" alt="La La Lamp - your mood, but lit" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='logo.png'}else{this.style.display='none'}"></div>
     <ul class="feat" id="feat"></ul>
   </div>
   <div class="search"><input id="q" type="search" placeholder="Search products" aria-label="Search products"></div>
@@ -109,7 +108,7 @@
 /* ============ EDIT THIS SECTION ============ */
 const CONFIG = {
   brandName: "La La Lamp",
-  logo: "images/logo.png",   // put your logo file here (or in the main folder)
+  logo: "images/logo.png",   // full logo with the name. Use "images/logo-icon.png" for the symbol only
   handle: "@lalalamp.in",
   features: ["Product: (Non-scented/Scented)","100% premium Soy wax","Eco-friendly","Smokeless","Colour - Customised","Scent - Options"],
   // Paste your published Google Sheet CSV link here. Leave empty to show the sample products.
@@ -150,7 +149,6 @@ function imgErr(img){
 }
 
 document.title=CONFIG.brandName;
-$("brand").textContent=CONFIG.brandName;
 $("logo").src=CONFIG.logo;
 $("handle").textContent=CONFIG.handle;
 $("feat").innerHTML=CONFIG.features.map((f,i)=>`<li${i?"":' class="head"'}>${esc(f)}</li>`).join("");
