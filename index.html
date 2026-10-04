@@ -109,13 +109,14 @@ const CONFIG = {
   handle: "@lalalamp.in",
   features: ["Product: (Non-scented/Scented)","100% premium Soy wax","Eco-friendly","Smokeless","Colour - Customised","Scent - Options"],
   // Paste your published Google Sheet CSV link here. Leave empty to show the sample products.
-  sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRqDPpJA9jY8I5JWug2JsLmKuITvSnEJJCIgmD4_zGD6zsQrfYhYmE-J_DDOHEhBwAd3QslQiaPivp7/pub?gid=1509322929&single=true&output=csv",
+  sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYhdlXeeqW14zvQVoHraHs-zZ2jHXSTDrHtiRQ5r4tYD9B4QRsnHOkoyaf3bWLXHVF3GUno4KfsTlT/pub?gid=1033938225&single=true&output=csv",
   whatsappNumber: "917887723281",   // orders go here (country code + number, no + or spaces)
   currency: "₹"
 };
 /* =========================================== */
 
-/* Sheet columns: name, category, price, scented_price, weight, volume, burn_time, colors, image, in_stock
+/* Sheet columns: name, category, price, scented_price, weight, volume, burn_time, details, colours, image, in_stock
+   details = any extra bullets, written as Label: value and separated by ;  e.g.  Wick: Cotton; Size: 8 cm
    price = non-scented price, scented_price = scented price. Fill both for a choice; fill only one if the candle comes only that way.
    colors: either 8 yes/no columns named pink,white,cyan,yellow,green,orange,blue,purple (yes = offered),
    or one 'colors' column with names separated by ; or , . Nothing filled = all 8 colours. */
@@ -179,8 +180,10 @@ function render(){
     const cols=colorList(p); if(st.c>=cols.length) st.c=0;
     const out=/^(no|n|false|0|out)/i.test(p.in_stock||"")||!(hasN||hasS);
     const now=st.s?sp:price;
-    const specs=[["Weight",p.weight],["Jar volume",p.volume],["Burn time",p.burn_time]].filter(x=>x[1]).map(x=>`<li>${x[0]} - ${esc(x[1])}</li>`).join("");
-    return `<article class="row${out?" out":""}">
+    const base=[["Weight",p.weight],["Jar volume",p.volume],["Burn time",p.burn_time]].filter(x=>x[1]).map(x=>x[0]+" - "+x[1]);
+    const extra=(p.details||"").split(/[;\n]+/).map(x=>x.trim()).filter(Boolean).map(x=>x.replace(/\s*:\s*/," - "));
+    const specs=[...base,...extra].map(t=>`<li>${esc(t)}</li>`).join("");
+    return `<article class="row${out?" out":""}" data-i="${i}">
       <img class="row-img" src="${esc(p.image||"https://picsum.photos/seed/"+encodeURIComponent(p.name)+"/600/600")}" data-orig="${esc(p.image||"")}" data-name="${esc(p.name)}" data-n="0" onerror="imgErr(this)" alt="${esc(p.name)}" loading="lazy">
       <div class="info">
         <div class="price">${cur}${both?`${price} <i>|</i> ${sp}`:(hasN?price:sp)}</div>
@@ -192,6 +195,16 @@ function render(){
         ${out?`<div class="tag">${hasN||hasS?"Out of stock":"Price not available"}</div>`:""}
         <button class="btn" data-add="${i}" ${out?"disabled":""}>${out?"Unavailable":`Add to cart - ${cur}${now}`}</button>
       </div></article>`}).join(""):'<p class="msg">No products match your search.</p>';
+}
+
+// Update one card in place (no re-draw, so photos don't flicker or reload)
+function updateCard(i){
+  const el=document.querySelector(`.row[data-i="${i}"]`),st=sel[i];if(!el||!st)return;
+  const p=products[i],cols=colorList(p),price=num(p.price),sp=num(p.scented_price);
+  el.querySelectorAll(".dot").forEach((d,ci)=>d.classList.toggle("on",ci===st.c));
+  el.querySelector(".cname").textContent="Colour: "+cap(cols[st.c]);
+  el.querySelectorAll(".scent button").forEach((b,k)=>b.classList.toggle("on",k===st.s));
+  const btn=el.querySelector("[data-add]");if(btn&&!btn.disabled)btn.textContent="Add to cart - "+cur+(st.s?sp:price);
 }
 
 /* ---- cart ---- */
@@ -220,14 +233,14 @@ $("checkout").addEventListener("click",e=>{
 });
 document.addEventListener("click",e=>{
   const t=e.target.closest("button");if(!t)return;const d=t.dataset;
-  if(d.s){const[i,v]=d.s.split(":");(sel[i]||(sel[i]={s:0,c:0})).s=+v;render()}
-  else if(d.c){const[i,v]=d.c.split(":");(sel[i]||(sel[i]={s:0,c:0})).c=+v;render()}
+  if(d.s){const[i,v]=d.s.split(":");(sel[i]||(sel[i]={s:0,c:0})).s=+v;updateCard(i)}
+  else if(d.c){const[i,v]=d.c.split(":");(sel[i]||(sel[i]={s:0,c:0})).c=+v;updateCard(i)}
   else if(d.add!==undefined){
     const i=d.add,p=products[i],st=sel[i]||{s:0,c:0},cols=colorList(p);
     const scent=st.s?"Scented":"Non-scented",color=cap(cols[st.c]),price=st.s?num(p.scented_price):num(p.price);
     const k=[p.name,scent,color].join("|");
     cart[k]=cart[k]||{name:p.name,scent,color,price,image:p.image||"",qty:0};cart[k].qty++;
-    saveCart();const old=t.textContent;t.textContent="Added ✓";setTimeout(render,900);
+    saveCart();const old=t.textContent;t.textContent="Added ✓";setTimeout(()=>updateCard(i),900);
   }
   else if(d.inc){cart[d.inc].qty++;saveCart()}
   else if(d.dec){if(--cart[d.dec].qty<=0)delete cart[d.dec];saveCart()}
