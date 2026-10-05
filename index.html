@@ -40,7 +40,7 @@
 
   /* ---------- product card ---------- */
   .row{display:grid;grid-template-columns:minmax(150px,38%) 1fr;gap:28px;padding:20px;margin-top:20px;background:var(--card);border:1px solid var(--line);border-radius:18px;align-items:stretch}
-  .row img{width:100%;aspect-ratio:1/1;height:auto;object-fit:contain;background:var(--blush);border-radius:12px;display:block;align-self:start}
+  .row img{width:100%;height:auto;border-radius:12px;display:block;align-self:start}
   .info{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
   .info .btn{margin-top:auto}
   .price{font-family:var(--serif);font-weight:600;color:var(--brand);font-size:clamp(1.5rem,4vw,2rem);line-height:1.1}
@@ -109,7 +109,7 @@
   }
   @media (max-width:520px){
     .row{grid-template-columns:1fr}
-    .row img{max-height:420px}
+    .row img{width:100%;max-width:480px;margin:0 auto}
     .info .btn{width:100%}
     .price{font-size:1.7rem}
   }
